@@ -1,13 +1,7 @@
-import mysql.connector  # Importar el conector de MySQL
 import pandas as pd
-import plost
 import streamlit as st
 import matplotlib.pyplot as plt
 import plotly.express as px
-from dotenv import load_dotenv
-import os
-from pydataxm import *          # Importa la libreria que fue instalada con pip install pydataxm o tambien desde GitHub
-from pydataxm.pydataxm import ReadDB as apiXM    #Se importa la clase que invoca el servicio
 import datetime as dt           # Permite trabajar con fechas 
 import numpy as np              # Manipulación de datos
 import matplotlib.dates as mdates
