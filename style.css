@@ -1,8 +1,8 @@
 /* Logo */
 /* Adapted from Zachary Blackwood */
 [data-testid="stSidebar"] {
-                background-image: url( );
-                background-size: 150px;
+                background-image: url('Logo/logo.png');
+                background-size: cover;
                 background-repeat: no-repeat;
                 background-position: 40px 20px;
                 

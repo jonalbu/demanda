@@ -1,0 +1,40 @@
+/* Logo en la barra lateral */
+[data-testid="stSidebar"] {
+    background-image: url('Logo/logo.png');
+    background-size: 80%;
+    background-repeat: no-repeat;
+    background-position: 50px 30px;
+    padding-top: 150px;
+}
+
+/* Estilo de la tarjeta */
+div.css-1r6slb0.e1tzin5v2 {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    padding: 5% 5% 5% 10%;
+    border-radius: 10px;
+    border-left: 0.5rem solid #9AD8E1 !important;
+    box-shadow: 0 0.3rem 2rem rgba(58, 59, 69, 0.25) !important;
+}
+
+/* Etiquetas del formulario */
+label.css-mkogse.e16fv1kl2 {
+    color: #36b9cc !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+/* Ajustar el contenedor principal más arriba */
+div.block-container.css-18e3th9.egzxvld2 {
+    margin-top: -4em;
+}
+
+/* Ocultar el menú hamburguesa y el pie de página */
+div.css-r698ls.e8zbici2,
+footer.css-ipbk5a.egzxvld4,
+footer.css-12gp8ed.eknhn3m4,
+div.vg-tooltip-element {
+    display: none;
+}
