@@ -391,7 +391,7 @@ else:
             fig = px.line(forecast, x='ds', y='yhat', labels={'ds': 'Fecha', 'yhat': 'Demanda Estimada'},
                           title='Predicción de la Demanda Energética')
             fig.add_scatter(x=data_prophet['ds'], y=data_prophet['y'], mode='lines', name='Demanda Histórica')
-            fig.add_scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Predicción', line=dict(color='green'))
+            #fig.add_scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Predicción', line=dict(color='green'))
 
             # Agregar intervalos de confianza si se selecciona
             if mostrar_intervalo:
