@@ -1,8 +1,15 @@
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+import plotly.express as px
 from prophet import Prophet
 import numpy as np
+
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 
 
 # Configuración de la página de Streamlit
@@ -21,7 +28,7 @@ st.sidebar.header('Demanda Energética')
 # Cargar el archivo de datos
 df_demanda = pd.read_csv('Data/demanda_exportada.txt', sep='\t')
 
-# Asegúrate de que la columna 'Date' esté en formato datetime
+# Asegurar que la columna 'Date' esté en formato datetime
 df_demanda['Date'] = pd.to_datetime(df_demanda['Date'])
 
 # Suma de la demanda por horas (diaria)
@@ -284,27 +291,65 @@ st.plotly_chart(fig2, use_container_width=True)
 
 #Predicción de la demanda energética
 
+# Cargar los datos (modifica la ruta según tu directorio)
+demanda = pd.read_csv('C:/Users/jonal/OneDrive/Documentos/12_Bootcamp_Talento_Tech/Proyecto/Streamlit/Data/demanda_diaria_regresion.txt', sep='\t')
+oferta = pd.read_csv('C:/Users/jonal/OneDrive/Documentos/12_Bootcamp_Talento_Tech/Proyecto/Streamlit/Data/oferta_diaria_regresion.txt', sep='\t')
 
-# Configuración de Streamlit
-st.title('Predicción de la Demanda Energética con Prophet')
+# Combinar los datos
+data = pd.merge(demanda, oferta, on='Date')
 
-# Cargar y preparar los datos
-@st.cache_data
-def cargar_datos():
-    # Simula la carga de datos, reemplaza con tus datos reales
-    data = pd.DataFrame({
-        'Date': pd.date_range(start='2020-01-01', periods=1000, freq='D'),
-        'demanda_diaria': np.random.randint(100000, 150000, size=1000)
-    })
-    data['Date'] = pd.to_datetime(data['Date'])
-    return data
+# Crear nuevas características
+data['diferencia_demanda'] = data['demanda_diaria'].diff().fillna(0)
+data['media_movil_demanda'] = data['demanda_diaria'].rolling(window=3).mean().fillna(data['demanda_diaria'].mean())
+data['lag_demanda'] = data['demanda_diaria'].shift(1).fillna(data['demanda_diaria'].mean())
 
-data = cargar_datos()
+# Características y variable objetivo
+X = data[['oferta_diaria', 'diferencia_demanda', 'media_movil_demanda', 'lag_demanda']]
+y = data['demanda_diaria']
 
-# Convertir la columna de fechas al formato datetime
+# Dividir en conjunto de entrenamiento y prueba
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Pipeline con escalado y modelo
+pipeline = Pipeline([
+    ('scaler', StandardScaler()), 
+    ('model', GradientBoostingRegressor())
+])
+
+# Definir los hiperparámetros a buscar en GridSearchCV
+param_grid = {
+    'model__n_estimators': [100, 200],
+    'model__max_depth': [3, 5],
+    'model__learning_rate': [0.01, 0.1]
+}
+
+# GridSearchCV
+grid_search = GridSearchCV(pipeline, param_grid, cv=3, scoring='r2', n_jobs=-1)
+grid_search.fit(X_train, y_train)
+
+# Mejor modelo encontrado
+best_model = grid_search.best_estimator_
+
+# Predicciones con el mejor modelo
+y_pred = best_model.predict(X_test)
+
+# Evaluación del modelo optimizado
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+# Interfaz de Streamlit
+st.title('Modelo de Predicción de Demanda Energética')
+
+# Mostrar las métricas de evaluación
+st.subheader('Métricas de Evaluación')
+st.write(f"Mejores Hiperparámetros: {grid_search.best_params_}")
+st.write(f"MAE: {mae:.2f}")
+st.write(f"MSE: {mse:.2f}")
+st.write(f"R2: {r2:.2f}")
+
+# Implementar la predicción con Prophet
 data['Date'] = pd.to_datetime(data['Date'])
-
-# Preparar los datos para Prophet
 data_prophet = data[['Date', 'demanda_diaria']].copy()
 data_prophet.columns = ['ds', 'y']
 
@@ -312,100 +357,51 @@ data_prophet.columns = ['ds', 'y']
 model_prophet = Prophet(yearly_seasonality=True, weekly_seasonality=True, daily_seasonality=False)
 model_prophet.fit(data_prophet)
 
-# Entrada de usuario para seleccionar los años de predicción
-anos_prediccion = st.number_input(
-    'Selecciona el número de años para predecir:',
-    min_value=1,
-    max_value=10,
-    value=5
-)
+# Inputs para la selección del número de años y la fecha específica
+anos_prediccion = st.number_input('Selecciona el número de años para predecir:', min_value=1, max_value=10, value=5, step=1)
+fecha_futura = st.date_input('Selecciona la fecha para predecir la demanda:', value=pd.to_datetime('2024-10-27'))
 
-# Generar predicciones futuras
-dias_prediccion = 365 * anos_prediccion
-future = model_prophet.make_future_dataframe(periods=dias_prediccion)
-forecast = model_prophet.predict(future)
+# Convertir la fecha de predicción a Timestamp
+fecha_futura = pd.to_datetime(fecha_futura)
 
-# Entrada de usuario para seleccionar la fecha futura
-fecha_futura = st.date_input(
-    'Selecciona la fecha para predecir la demanda:',
-    min_value=future['ds'].min().date(),
-    max_value=future['ds'].max().date()
-)
+# Opción para mostrar u ocultar intervalos de confianza
+mostrar_intervalo = st.checkbox('Mostrar intervalos de confianza', value=True)
 
-# Buscar la predicción para la fecha dada
-prediccion = forecast[forecast['ds'] == pd.to_datetime(fecha_futura)]
+# Verificar si la fecha futura es válida
+ultima_fecha = data['Date'].max()
 
-# Mostrar la predicción si la fecha es válida
-if not prediccion.empty:
-    yhat = prediccion['yhat'].values[0]
-    yhat_lower = prediccion['yhat_lower'].values[0]
-    yhat_upper = prediccion['yhat_upper'].values[0]
-    
-    st.write(f"**Predicción para {fecha_futura}:**")
-    st.write(f"- Demanda Estimada: {yhat:.2f}")
-    st.write(f"- Intervalo de Confianza: [{yhat_lower:.2f}, {yhat_upper:.2f}]")
-    
-    # Crear la figura con Plotly
-    fig = go.Figure()
-
-    # Agregar la demanda histórica
-    fig.add_trace(go.Scatter(
-        x=data_prophet['ds'],
-        y=data_prophet['y'],
-        mode='lines',
-        name='Demanda Histórica',
-        line=dict(color='blue')
-    ))
-
-    # Agregar la predicción
-    fig.add_trace(go.Scatter(
-        x=forecast['ds'],
-        y=forecast['yhat'],
-        mode='lines',
-        name='Predicción',
-        line=dict(color='green')
-    ))
-
-    # Agregar el intervalo de confianza
-    fig.add_trace(go.Scatter(
-        x=forecast['ds'],
-        y=forecast['yhat_upper'],
-        mode='lines',
-        name='Límite Superior (95%)',
-        line=dict(color='gray', dash='dash'),
-        fill=None
-    ))
-
-    fig.add_trace(go.Scatter(
-        x=forecast['ds'],
-        y=forecast['yhat_lower'],
-        mode='lines',
-        name='Límite Inferior (95%)',
-        line=dict(color='gray', dash='dash'),
-        fill='tonexty',
-        fillcolor='rgba(128, 128, 128, 0.2)'
-    ))
-
-    # Marcar la predicción específica
-    fig.add_trace(go.Scatter(
-        x=[pd.to_datetime(fecha_futura)],
-        y=[yhat],
-        mode='markers',
-        name='Predicción Específica',
-        marker=dict(color='red', size=10)
-    ))
-
-    # Personalización del gráfico
-    fig.update_layout(
-        title='Predicción de la Demanda Energética',
-        xaxis_title='Fecha',
-        yaxis_title='Demanda Energética',
-        legend=dict(x=0, y=1, traceorder='normal'),
-        hovermode='x'
-    )
-
-    # Mostrar el gráfico en Streamlit
-    st.plotly_chart(fig, use_container_width=True)
-
+if fecha_futura <= ultima_fecha:
+    st.error(f"La fecha seleccionada debe ser posterior a {ultima_fecha.date()}.")
 else:
-    st.write(f"No se encontró una predicción para la fecha {fecha_futura}. Verifica si la fecha está dentro del rango de predicción.")
+    # Función para predecir la demanda
+    def predecir_demanda(fecha_futura):
+        dias_prediccion = (fecha_futura - ultima_fecha).days
+        future = model_prophet.make_future_dataframe(periods=dias_prediccion)
+        forecast = model_prophet.predict(future)
+
+        prediccion = forecast[forecast['ds'] == fecha_futura]
+
+        if not prediccion.empty:
+            yhat = prediccion['yhat'].values[0]
+
+            st.subheader(f'Predicción para {fecha_futura.date()}:')
+            st.write(f"Demanda Estimada: {yhat:.2f}")
+
+            # Graficar la predicción completa usando Plotly
+            fig = px.line(forecast, x='ds', y='yhat', labels={'ds': 'Fecha', 'yhat': 'Demanda Estimada'},
+                          title='Predicción de la Demanda Energética')
+            fig.add_scatter(x=data_prophet['ds'], y=data_prophet['y'], mode='lines', name='Demanda Histórica')
+            fig.add_scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Predicción', line=dict(color='green'))
+
+            # Agregar intervalos de confianza si se selecciona
+            if mostrar_intervalo:
+                fig.add_scatter(x=forecast['ds'], y=forecast['yhat_upper'], mode='lines', name='Intervalo Superior', line=dict(dash='dot'))
+                fig.add_scatter(x=forecast['ds'], y=forecast['yhat_lower'], mode='lines', name='Intervalo Inferior', line=dict(dash='dot'))
+
+            # Marcar la predicción específica con un punto
+            fig.add_scatter(x=[fecha_futura], y=[yhat], mode='markers', name='Predicción Específica', marker=dict(color='red', size=10))
+
+            st.plotly_chart(fig)
+
+    # Llamar a la función de predicción con la fecha seleccionada
+    predecir_demanda(fecha_futura)
