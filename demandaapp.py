@@ -343,7 +343,7 @@ st.title('Modelo de Predicción de Demanda Energética')
 
 # Mostrar las métricas de evaluación
 st.subheader('Métricas de Evaluación')
-st.write(f"Mejores Hiperparámetros: {grid_search.best_params_}")
+#st.write(f"Mejores Hiperparámetros: {grid_search.best_params_}")
 st.write(f"MAE: {mae:.2f}")
 st.write(f"MSE: {mse:.2f}")
 st.write(f"R2: {r2:.2f}")
