@@ -4,12 +4,17 @@ import plotly.graph_objects as go
 import plotly.express as px
 from prophet import Prophet
 import numpy as np
+from datetime import datetime
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+
+
+
 
 
 # Configuración de la página de Streamlit
@@ -167,125 +172,113 @@ if años_seleccionados:
     st.plotly_chart(fig_superpuesto, use_container_width=True)
 else:
     st.write("Por favor, selecciona al menos un año para visualizar la demanda diaria.")
-    
-    
-#DATOS DE OFERTA    
 
-# Cargar el archivo de datos
-df_oferta = pd.read_csv('Data/oferta_recursos.txt', sep='\t')
+
+# OFERTA ENERGÉTICA
+    
+# Cargar el DataFrame
+df_oferta2 = pd.read_csv('C:/Users/jonal/OneDrive/Documentos/12_Bootcamp_Talento_Tech/Proyecto/Streamlit/Data/oferta_recursos.txt', sep='\t')
+df_oferta = df_oferta2.dropna()
 
 # Asegúrate de que la columna 'Date' esté en formato datetime
 df_oferta['Date'] = pd.to_datetime(df_oferta['Date'])
 
-# Reemplazar valores nulos por cero
-df_oferta = df_oferta.fillna(0)
-
-# Suma de la oferta por horas (diaria)
+# Suma de la oferta diaria y eliminación de valores nulos
 df_oferta['oferta_diaria'] = df_oferta.sum(axis=1, skipna=True, numeric_only=True)
+df_oferta = df_oferta.dropna(subset=['oferta_diaria'])
 
-# Definir los recursos específicos de la región Caribe
-recursos_caribe = ["2VJS", "3ENA", "3ENE", "3GPZ", "3HBN", "3HF5", "3HWM", "3IZ6", 
-                   "3J2B", "3IS2", "3J2H", "3J4D", "3K6T", "3KJK", "3NLZ", "CTG1", 
-                   "CTG2", "CTG3", "EPFV", "GE32", "GEC3", "MATA", "PRG1", "PRG2", 
-                   "TBQ3", "TBQ4", "TBST", "TCBE", "TCDT", "TFL1", "TFL4", "TGJ1", 
-                   "TGJ2", "TMB1", "TRN1", "URA1"]
+# Sidebar para la selección de rango de fechas, tipos de fuente energética, regiones, departamentos y años
+with st.sidebar:
+    st.header("Oferta Energética")
+    fecha_inicio, fecha_fin = st.date_input(
+        "Selecciona el rango de fechas",
+        [min(df_oferta['Date']), max(df_oferta['Date'])],
+        min_value=min(df_oferta['Date']),
+        max_value=max(df_oferta['Date'])
+    )
+    values_types = st.multiselect("Selecciona los tipos de fuente energética", df_oferta['Values_Type'].unique())
+    regiones = st.multiselect("Selecciona las regiones", df_oferta['Región'].unique())
+    departamentos = st.multiselect("Selecciona los departamentos", df_oferta['Departamento'].unique())
+    years = st.multiselect("Selecciona el/los año(s)", df_oferta['Date'].dt.year.unique())
 
-# Filtrar el DataFrame por los recursos de la región Caribe
-df_region_caribe = df_oferta[df_oferta['Values_code'].isin(recursos_caribe)]
-
-# --- Sidebar para selección de rango de fechas y años ---
-st.sidebar.header("Oferta Energética")
-
-# Rango de fechas mínimo y máximo
-min_date = df_region_caribe['Date'].min()
-max_date = df_region_caribe['Date'].max()
-
-# Widget para seleccionar el rango de fechas
-selected_range = st.sidebar.date_input(
-    "Selecciona el rango de fechas Entre 2021 y 2023",
-    value=(min_date, max_date),
-    min_value=min_date,
-    max_value=max_date
-)
-
-# Filtrar el DataFrame según el rango de fechas seleccionado
-df_filtrado = df_region_caribe[
-    (df_region_caribe['Date'] >= pd.to_datetime(selected_range[0])) & 
-    (df_region_caribe['Date'] <= pd.to_datetime(selected_range[1]))
+# Filtrar el DataFrame según los criterios seleccionados
+df_filtrado = df_oferta[
+    (df_oferta['Values_Type'].isin(values_types) | (not values_types)) &
+    (df_oferta['Región'].isin(regiones) | (not regiones)) &
+    (df_oferta['Departamento'].isin(departamentos) | (not departamentos)) &
+    (df_oferta['Date'] >= pd.to_datetime(fecha_inicio)) &
+    (df_oferta['Date'] <= pd.to_datetime(fecha_fin)) &
+    (df_oferta['Date'].dt.year.isin(years) | (not years))
 ]
 
-# Obtener los años disponibles
-años_disponibles = df_region_caribe['Date'].dt.year.unique()
+# Gráfico #1: Oferta por meses (líneas)
+df_mensual = df_filtrado.groupby([pd.Grouper(key='Date', freq='M'), 'Región', 'Departamento'])['oferta_diaria'].sum().reset_index()
+fig1 = px.line(df_mensual, x='Date', y='oferta_diaria', color='Región',
+               line_group='Departamento',
+               labels={'Date': 'Fecha', 'oferta_diaria': 'Oferta (GWh)', 'Región': 'Región'},
+               title='Oferta Mensual en Colombia por Región y Departamento')
 
-# Widget para seleccionar los años para el gráfico ficticio
-selected_years = st.sidebar.multiselect(
-    "Selecciona los años para el segundo gráfico",
-    options=sorted(años_disponibles),
-    default=[2021]  # Selecciona 2021 por defecto
-)
+# Gráfico #2: Oferta por días (líneas)
+df_diaria = df_filtrado.groupby([pd.Grouper(key='Date', freq='D'), 'Región', 'Departamento'])['oferta_diaria'].sum().reset_index()
+fig2 = px.line(df_diaria, x='Date', y='oferta_diaria', color='Región',
+               line_group='Departamento',
+               labels={'Date': 'Fecha', 'oferta_diaria': 'Oferta (GWh)', 'Región': 'Región'},
+               title='Oferta Diaria en Colombia por Región y Departamento')
 
-# --- Gráfico #1: Oferta energética diaria en el rango de fechas seleccionado ---
-df_filtrado_diario = df_filtrado.groupby('Date')['oferta_diaria'].sum().reset_index()
+# Gráfico de torta #1: Aportes de tipo de fuente de energía
+df_pie = df_filtrado.groupby('Values_Type')['oferta_diaria'].sum().reset_index()
+fig_pie = px.pie(df_pie, values='oferta_diaria', names='Values_Type',
+                 title='Aportes de Tipo de Fuente de Energía',
+                 labels={'Values_Type': 'Tipo de Fuente', 'oferta_diaria': 'Oferta Total (GWh)'})
 
-fig1 = go.Figure()
+# Gráfico de torta #2: Distribución de Values_Name filtrada por regiones y departamentos seleccionados
+df_pie_Values_Name = df_filtrado.groupby(['Values_Name', 'Región', 'Departamento'])['oferta_diaria'].sum().reset_index()
 
-fig1.add_trace(go.Scatter(
-    x=df_filtrado_diario['Date'],
-    y=df_filtrado_diario['oferta_diaria'],
-    mode='lines',
-    line=dict(color='royalblue', width=2),
-    name='Oferta Diaria'
-))
+# Filtrar por las regiones y departamentos seleccionados
+df_pie_Values_Name = df_pie_Values_Name[
+    (df_pie_Values_Name['Región'].isin(regiones) | (not regiones)) &
+    (df_pie_Values_Name['Departamento'].isin(departamentos) | (not departamentos))
+]
 
-fig1.update_layout(
-    title='Oferta Energética Diaria - Región Caribe',
-    xaxis=dict(title='Fecha'),
-    yaxis=dict(title='Oferta en GWh'),
-    template='plotly_white',
-    hovermode='x unified',
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)'
-)
+fig_pie_Values_Name = px.pie(df_pie_Values_Name, values='oferta_diaria', names='Values_Name',
+                             title='Distribución Planta Energética',
+                             labels={'Values_Name': 'Values Name', 'oferta_diaria': 'Oferta Total (GWh)'})
 
-st.title("Visualización de la Oferta Energética Diaria")
-st.plotly_chart(fig1, use_container_width=True)
+# Diseño de columnas para gráficos en paralelo
+col1, col2 = st.columns([2, 1])
 
-# --- Gráfico #2: Oferta diaria con eje X de 365 días (según años seleccionados) ---
-df_anual = df_region_caribe[df_region_caribe['Date'].dt.year.isin(selected_years)]
-df_anual['day_of_year'] = df_anual['Date'].dt.dayofyear
+with col1:
+    # Mostrar el gráfico de oferta por meses
+    st.plotly_chart(fig1, use_container_width=True)
 
-# Agrupar por 'day_of_year' y 'year' para representar un año ficticio
-df_ficticio = df_anual.groupby(['day_of_year', 'Date']).agg({'oferta_diaria': 'sum'}).reset_index()
+with col2:
+    # Mostrar el gráfico de torta de tipo de fuente de energía
+    st.plotly_chart(fig_pie, use_container_width=True)
 
-fig2 = go.Figure()
+# Diseño de columnas para el gráfico de oferta diaria y el gráfico de torta de Values_Name
+col3, col4 = st.columns([2, 1])
 
-# Graficar la oferta diaria para cada año seleccionado
-for año in selected_years:
-    df_año = df_ficticio[df_ficticio['Date'].dt.year == año]
-    fig2.add_trace(go.Scatter(
-        x=df_año['day_of_year'],
-        y=df_año['oferta_diaria'],
-        mode='lines',
-        name=f'Oferta Diaria {año}'
-    ))
+with col3:
+    # Mostrar el gráfico de oferta diaria
+    st.plotly_chart(fig2, use_container_width=True)
 
-fig2.update_layout(
-    title='Oferta Energética Diaria (Año Ficticio)',
-    xaxis=dict(
-        title='Día del Año (1-365)',
-        tickmode='linear',
-        dtick=30,  # Mostrar una etiqueta cada 30 días
-        tickvals=list(range(1, 366, 30)),
-        tickangle=0  # Mantener las etiquetas horizontales
-    ),
-    yaxis=dict(title='Oferta en GWh'),
-    template='plotly_white',
-    hovermode='x unified',
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)'
-)
+with col4:
+    # Mostrar el gráfico de torta de Values_Name debajo de la primera torta
+    st.plotly_chart(fig_pie_Values_Name, use_container_width=True)
 
-st.plotly_chart(fig2, use_container_width=True)
+# Gráfico #3: Sumatoria de oferta diaria por año seleccionado
+df_anual = df_filtrado.copy()
+df_anual['Dia_del_año'] = df_anual['Date'].dt.dayofyear
+
+# Agrupar por día del año y calcular la sumatoria de oferta diaria para los años seleccionados
+df_anual_sum = df_anual.groupby(['Dia_del_año', df_anual['Date'].dt.year])['oferta_diaria'].sum().reset_index()
+fig3 = px.line(df_anual_sum, x='Dia_del_año', y='oferta_diaria', color='Date',
+               labels={'Dia_del_año': 'Día del Año', 'oferta_diaria': 'Oferta Total (GWh)', 'Date': 'Año'},
+               title='Sumatoria de la Oferta Diaria por Año')
+
+# Mostrar el tercer gráfico después de los dos primeros
+st.plotly_chart(fig3, use_container_width=True)
+
 
 
 
@@ -391,7 +384,7 @@ else:
             fig = px.line(forecast, x='ds', y='yhat', labels={'ds': 'Fecha', 'yhat': 'Demanda Estimada'},
                           title='Predicción de la Demanda Energética')
             fig.add_scatter(x=data_prophet['ds'], y=data_prophet['y'], mode='lines', name='Demanda Histórica')
-            fig.add_scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Predicción', line=dict(color='green'))
+            #fig.add_scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Predicción', line=dict(color='green'))
 
             # Agregar intervalos de confianza si se selecciona
             if mostrar_intervalo:
@@ -405,3 +398,141 @@ else:
 
     # Llamar a la función de predicción con la fecha seleccionada
     predecir_demanda(fecha_futura)
+
+
+
+
+#Predicción de la oferta energética
+
+
+# Cargar los datos (demanda y oferta)
+demanda = pd.read_csv('Data/demanda_diaria_regresion.txt', sep='\t')
+oferta = pd.read_csv('Data/oferta_diaria_regresion.txt', sep='\t')
+
+# Convertir la columna de fecha a formato datetime
+demanda['Date'] = pd.to_datetime(demanda['Date'])
+oferta['Date'] = pd.to_datetime(oferta['Date'])
+
+# Combinar los datos
+data = pd.merge(demanda, oferta, on='Date')
+
+# Preparar los datos para el modelo
+data.set_index('Date', inplace=True)
+oferta_data = data['oferta_diaria']
+
+# Configuración de Streamlit
+st.title('Predicción de la Demanda Energética')
+
+# Colocación de las selecciones en una sola fila
+col1, col2 = st.columns(2)
+
+with col1:
+    # Input numérico para seleccionar el número de años a predecir con botones + y -
+    n_years = st.number_input(
+        'Selecciona el número de años para predecir:',
+        min_value=1,
+        max_value=20,
+        value=5,
+        step=1
+    )
+
+with col2:
+    # Entrada para la fecha final de la predicción
+    end_date = st.date_input(
+        'Selecciona la fecha final de la predicción:',
+        value=pd.to_datetime(oferta_data.index[-1] + pd.DateOffset(years=1))
+    )
+
+# Asegúrate de que end_date sea de tipo datetime
+end_date = pd.to_datetime(end_date)
+
+# Espacio adicional para separación visual
+st.markdown('---')
+
+# Calcular el número de días para la predicción desde la última fecha de datos hasta la fecha seleccionada
+ultima_fecha = oferta_data.index[-1]
+
+# Asegúrate de que ultima_fecha sea de tipo datetime
+ultima_fecha = pd.to_datetime(ultima_fecha)
+
+# Calcular el número de días para la predicción
+n_periods = (end_date - ultima_fecha).days
+
+# Ajustar el modelo de suavización exponencial (Holt-Winters)
+model = ExponentialSmoothing(oferta_data, trend='add', seasonal='add', seasonal_periods=365)
+fit = model.fit()
+
+# Predicción a futuro (en días) desde la última fecha de la serie histórica
+forecast = fit.forecast(steps=n_periods)
+
+# Calcular el intervalo de confianza del 95%
+alpha = 0.05
+ci_upper = forecast + 1.96 * fit.resid.std()
+ci_lower = forecast - 1.96 * fit.resid.std()
+
+# Crear un DataFrame para la predicción y los intervalos de confianza
+forecast_index = pd.date_range(start=ultima_fecha + pd.Timedelta(days=1), periods=n_periods, freq='D')
+df_forecast = pd.DataFrame({'Fecha': forecast_index, 'Predicción': forecast, 
+                            'IC_Superior': ci_upper, 'IC_Inferior': ci_lower})
+
+# Obtener el valor estimado en la fecha final seleccionada
+end_pred_value = df_forecast[df_forecast['Fecha'] == end_date]['Predicción'].iloc[0]
+
+# Mostrar la predicción para la fecha seleccionada
+st.markdown(f"### Predicción para {end_date.strftime('%Y-%m-%d')}:")
+st.write(f"Demanda Estimada: {end_pred_value:.2f}")
+
+# Graficar oferta histórica y predicción
+fig = go.Figure()
+
+# Oferta histórica
+fig.add_trace(go.Scatter(
+    x=oferta_data.index, 
+    y=oferta_data, 
+    mode='lines',
+    name='Demanda Histórica',
+    line=dict(color='blue')
+))
+
+# Predicción
+fig.add_trace(go.Scatter(
+    x=df_forecast['Fecha'], 
+    y=df_forecast['Predicción'], 
+    mode='lines',
+    name='Predicción',
+    line=dict(color='green')
+))
+
+# Intervalo de confianza (siempre visible)
+fig.add_trace(go.Scatter(
+    x=pd.concat([df_forecast['Fecha'], df_forecast['Fecha'][::-1]]),
+    y=pd.concat([df_forecast['IC_Superior'], df_forecast['IC_Inferior'][::-1]]),
+    fill='toself',
+    fillcolor='rgba(128, 128, 128, 0.2)',
+    line=dict(color='rgba(128, 128, 128, 0)'),
+    name='Intervalos de Confianza (95%)'
+))
+
+# Agregar un punto rojo en la fecha final de la predicción con la oferta estimada
+fig.add_trace(go.Scatter(
+    x=[end_date],
+    y=[end_pred_value],
+    mode='markers+text',
+    marker=dict(color='red', size=10),
+    name='Predicción Específica',
+    text=[f'{end_pred_value:.2f}'],
+    textposition='top center'
+))
+
+# Configuración de la gráfica
+fig.update_layout(
+    title='Predicción de la Demanda Energética',
+    xaxis_title='Fecha',
+    yaxis_title='Demanda Estimada',
+    legend=dict(x=0, y=1, traceorder='normal'),
+    xaxis=dict(tickangle=45),
+    template='plotly_white'
+)
+
+# Mostrar la gráfica en Streamlit
+st.plotly_chart(fig)
