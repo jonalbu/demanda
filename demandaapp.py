@@ -22,7 +22,7 @@ from sklearn.pipeline import Pipeline
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
 
 
-st.sidebar.image("Logo/logo2.png", use_column_width=True)
+st.sidebar.image("Logo/logo2.jpg", use_column_width=True)
 
 with open('style2.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)

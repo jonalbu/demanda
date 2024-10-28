@@ -1,6 +1,6 @@
 /* Logo en la barra lateral */
 [data-testid="stSidebar"] {
-    background-image: url('Logo/logo2.png');
+    background-image: url('Logo/logo2.jpg');
     background-size: 80%;
     background-repeat: no-repeat;
     background-position: 50px 30px;
