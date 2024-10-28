@@ -22,7 +22,7 @@ from sklearn.pipeline import Pipeline
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
 
 
-st.sidebar.image("Logo/logo.png", use_column_width=True)
+st.sidebar.image("Logo/logo2.png", use_column_width=True)
 
 with open('style2.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
@@ -422,7 +422,7 @@ data.set_index('Date', inplace=True)
 oferta_data = data['oferta_diaria']
 
 # Configuración de Streamlit
-st.title('Predicción de la Demanda Energética')
+st.title('Predicción de la Oferta Energética')
 
 # Colocación de las selecciones en una sola fila
 col1, col2 = st.columns(2)
@@ -481,7 +481,7 @@ end_pred_value = df_forecast[df_forecast['Fecha'] == end_date]['Predicción'].il
 
 # Mostrar la predicción para la fecha seleccionada
 st.markdown(f"### Predicción para {end_date.strftime('%Y-%m-%d')}:")
-st.write(f"Demanda Estimada: {end_pred_value:.2f}")
+st.write(f"Oferta Estimada: {end_pred_value:.2f}")
 
 # Graficar oferta histórica y predicción
 fig = go.Figure()
@@ -491,7 +491,7 @@ fig.add_trace(go.Scatter(
     x=oferta_data.index, 
     y=oferta_data, 
     mode='lines',
-    name='Demanda Histórica',
+    name='Oferta Histórica',
     line=dict(color='blue')
 ))
 
@@ -527,9 +527,9 @@ fig.add_trace(go.Scatter(
 
 # Configuración de la gráfica
 fig.update_layout(
-    title='Predicción de la Demanda Energética',
+    title='Predicción de la Oferta Energética',
     xaxis_title='Fecha',
-    yaxis_title='Demanda Estimada',
+    yaxis_title='Oferta Estimada',
     legend=dict(x=0, y=1, traceorder='normal'),
     xaxis=dict(tickangle=45),
     template='plotly_white'
