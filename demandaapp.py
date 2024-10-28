@@ -178,7 +178,7 @@ else:
 # OFERTA ENERGÉTICA
     
 # Cargar el DataFrame
-df_oferta2 = pd.read_csv('C:/Users/jonal/OneDrive/Documentos/12_Bootcamp_Talento_Tech/Proyecto/Streamlit/Data/oferta_recursos.txt', sep='\t')
+df_oferta2 = pd.read_csv('Data/oferta_recursos.txt', sep='\t')
 df_oferta = df_oferta2.dropna()
 
 # Asegúrate de que la columna 'Date' esté en formato datetime
