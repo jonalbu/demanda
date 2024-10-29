@@ -286,7 +286,7 @@ st.plotly_chart(fig3, use_container_width=True)
 #Predicción de la demanda energética
 
 # Cargar los datos (modifica la ruta según tu directorio)
-demanda = pd.read_csv('Data/demanda_diaria_regresion.txt', sep='\t')
+demanda = pd.read_csv('Data/Datos_demanda_corregida.txt', sep='\t')
 oferta = pd.read_csv('Data/oferta_diaria_regresion.txt', sep='\t')
 
 # Combinar los datos
