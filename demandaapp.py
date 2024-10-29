@@ -87,7 +87,7 @@ for code in selected_values_code:
 fig_mensual.update_layout(
     title='Demanda Mensual por Región',
     xaxis=dict(title='Mes', tickangle=-45),
-    yaxis=dict(title='Demanda en GWh'),
+    yaxis=dict(title='Demanda en Wh'),
     template='plotly_dark',
     plot_bgcolor='rgba(0,0,0,0)',
     paper_bgcolor='rgba(0,0,0,0)',
@@ -115,7 +115,7 @@ for code in selected_values_code:
 fig_diario.update_layout(
     title='Demanda Energética Diaria por Región',
     xaxis=dict(title='Tiempo (Días)', tickangle=-45),
-    yaxis=dict(title='Demanda en GWh'),
+    yaxis=dict(title='Demanda en KWh'),
     template='plotly_white',
     font=dict(size=14),
     hovermode='x unified'
@@ -162,7 +162,7 @@ if años_seleccionados:
             tickvals=list(range(1, 366, 30)),
             tickangle=0
         ),
-        yaxis=dict(title='Demanda en GWh'),
+        yaxis=dict(title='Demanda en KWh'),
         template='plotly_dark',
         hovermode='x unified',
         plot_bgcolor='rgba(0,0,0,0)',
@@ -216,21 +216,21 @@ df_filtrado = df_oferta[
 df_mensual = df_filtrado.groupby([pd.Grouper(key='Date', freq='M'), 'Región', 'Departamento'])['oferta_diaria'].sum().reset_index()
 fig1 = px.line(df_mensual, x='Date', y='oferta_diaria', color='Región',
                line_group='Departamento',
-               labels={'Date': 'Fecha', 'oferta_diaria': 'Oferta (GWh)', 'Región': 'Región'},
+               labels={'Date': 'Fecha', 'oferta_diaria': 'Oferta (KWh)', 'Región': 'Región'},
                title='Oferta Mensual en Colombia por Región y Departamento')
 
 # Gráfico #2: Oferta por días (líneas)
 df_diaria = df_filtrado.groupby([pd.Grouper(key='Date', freq='D'), 'Región', 'Departamento'])['oferta_diaria'].sum().reset_index()
 fig2 = px.line(df_diaria, x='Date', y='oferta_diaria', color='Región',
                line_group='Departamento',
-               labels={'Date': 'Fecha', 'oferta_diaria': 'Oferta (GWh)', 'Región': 'Región'},
+               labels={'Date': 'Fecha', 'oferta_diaria': 'Oferta (KWh)', 'Región': 'Región'},
                title='Oferta Diaria en Colombia por Región y Departamento')
 
 # Gráfico de torta #1: Aportes de tipo de fuente de energía
 df_pie = df_filtrado.groupby('Values_Type')['oferta_diaria'].sum().reset_index()
 fig_pie = px.pie(df_pie, values='oferta_diaria', names='Values_Type',
                  title='Aportes de Tipo de Fuente de Energía',
-                 labels={'Values_Type': 'Tipo de Fuente', 'oferta_diaria': 'Oferta Total (GWh)'})
+                 labels={'Values_Type': 'Tipo de Fuente', 'oferta_diaria': 'Oferta Total (KWh)'})
 
 # Gráfico de torta #2: Distribución de Values_Name filtrada por regiones y departamentos seleccionados
 df_pie_Values_Name = df_filtrado.groupby(['Values_Name', 'Región', 'Departamento'])['oferta_diaria'].sum().reset_index()
@@ -243,7 +243,7 @@ df_pie_Values_Name = df_pie_Values_Name[
 
 fig_pie_Values_Name = px.pie(df_pie_Values_Name, values='oferta_diaria', names='Values_Name',
                              title='Distribución Planta Energética',
-                             labels={'Values_Name': 'Values Name', 'oferta_diaria': 'Oferta Total (GWh)'})
+                             labels={'Values_Name': 'Values Name', 'oferta_diaria': 'Oferta Total (KWh)'})
 
 # Diseño de columnas para gráficos en paralelo
 col1, col2 = st.columns([2, 1])
@@ -274,7 +274,7 @@ df_anual['Dia_del_año'] = df_anual['Date'].dt.dayofyear
 # Agrupar por día del año y calcular la sumatoria de oferta diaria para los años seleccionados
 df_anual_sum = df_anual.groupby(['Dia_del_año', df_anual['Date'].dt.year])['oferta_diaria'].sum().reset_index()
 fig3 = px.line(df_anual_sum, x='Dia_del_año', y='oferta_diaria', color='Date',
-               labels={'Dia_del_año': 'Día del Año', 'oferta_diaria': 'Oferta Total (GWh)', 'Date': 'Año'},
+               labels={'Dia_del_año': 'Día del Año', 'oferta_diaria': 'Oferta Total (KWh)', 'Date': 'Año'},
                title='Sumatoria de la Oferta Diaria por Año')
 
 # Mostrar el tercer gráfico después de los dos primeros
