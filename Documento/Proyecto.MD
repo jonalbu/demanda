@@ -21,7 +21,7 @@
 La transición energética se ha convertido en un pilar fundamental para enfrentar los retos del cambio climático y promover un desarrollo sostenible. En Colombia, la región Caribe posee un alto potencial para el uso de energías limpias debido a su potencial ubicación geográfica para el uso de vientos y la radiación solar, pero enfrenta importantes desafíos en términos de desigualdad en el acceso a la energía, falta de infraestructura y dependencia de fuentes energéticas convencionales.
 
 La región Caribe ha enfrentado altos costos logísticos debido a su gran dependencia de plantas térmicas (de gas, carbón y combustible líquido), las cuales presentan costos energéticos superiores en comparación con las energías renovables. Estas últimas, hasta el momento, no han
-alcanzado una generación significativa para la región, lo que incrementa los costos de servicios públicos para las familias locales. (DNP, https://www.dnp.gov.co/Prensa_/Noticias/Paginas/dnp-el-caribe-es-clave-para-la-modernizacion-de-la-infraestructura-y-la-transicion-energetica-del-pais.aspx).
+alcanzado una generación significativa para la región, lo que incrementa los costos de servicios públicos para las familias locales. [DNP](https://www.dnp.gov.co/Prensa_/Noticias/Paginas/dnp-el-caribe-es-clave-para-la-modernizacion-de-la-infraestructura-y-la-transicion-energetica-del-pais.aspx).
 
 Este proyecto busca contribuir a la transición energética justa y sostenible en la región Caribe, facilitando la democratización del acceso a la energía mediante un modelo de análisis de datos que permita una planificación y gestión adecuadas de la oferta y demanda energética.
 
@@ -55,7 +55,7 @@ El desarrollo de un modelo de análisis de datos para la transición energética
 Se evaluaron varios portales de datos abiertos y se identificó el portal
 https://www.xm.com.co/, donde se descargaron una serie de archivos en formato CSV. A partir de estos, se construyó un modelo relacional en Workbench con las estructuras de datos necesarias para almacenar la información. Sin embargo, al realizar un análisis exploratorio inicial, se detectó que el volumen de datos recopilado es bajo y que requiere un esfuerzo adicional, manual y poco eficiente, para alimentar la base de datos y cumplir con los objetivos del análisis.
 
-Continuando con la búsqueda de fuentes de datos, se encontró en el mismo portal de XM un sitio dedicado a la analítica de datos e inteligencia de negocios, SINERGOX sinergox.xm.com.co, donde está disponible el API XM, que contiene información relevante sobre el Mercado de Energía Mayorista Colombiano. Esta API puede utilizarse en Python y está disponible en https://github.com/EquipoAnaliticaXM/API_XM.
+Continuando con la búsqueda de fuentes de datos, se encontró en el mismo portal de XM un sitio dedicado a la analítica de datos e inteligencia de negocios, SINERGOX sinergox.xm.com.co, donde está disponible el API XM, que contiene información relevante sobre el Mercado de Energía Mayorista Colombiano. Esta API puede utilizarse en Python y está disponible en la [API_XM](https://github.com/EquipoAnaliticaXM/API_XM).
 
 ### Descripción de datos
 
@@ -162,7 +162,7 @@ Para el análisis exploratorio, consideramos únicamente los datos correspondien
 oferta y demanda; por lo tanto, los agrupamos en valores diarios, obteniendo así 1095 datos, que corresponden a cada día dentro del período seleccionado.
 
 ![alt text](image.png)
-Ver Gráfica en [Jupyter/demanda3.ipynb](https://github.com/jonalbu/demanda/blob/50768b0ef215ffd80379e12ef425c846ce31d5a8/Jupyter/demanda3.ipynb#L1)
+Ver Gráfica en [Jupyter/demanda3.ipynb](Jupyter/demanda3.ipynb)
 
 Como se esperaba inicialmente, la tendencia de la demanda energética tiende a crecer.
 Además, el aumento en la demanda podría estar relacionado con la reactivación económica
@@ -173,7 +173,7 @@ Para el caso de la oferta, se realizó el mismo proceso que la demanda, definien
 periodo y agrupando los datos diarios en un resultado de oferta total por día.
 
 ![alt text](image-1.png)
-ver Gráfica en [Jupyter/oferta.ipynb](https://github.com/jonalbu/demanda/blob/50768b0ef215ffd80379e12ef425c846ce31d5a8/Jupyter/oferta.ipynb#L1)
+ver Gráfica en [Jupyter/oferta.ipynb](Jupyter/oferta.ipynb)
 
 Por otro lado, la oferta energética presenta un incremento similar al de la demanda, pero muestra menos variabilidad. Esto se debe a la capacidad mínima y máxima de generación de cada central, cuyos valores no tienden a fluctuar tanto como los de la demanda. Se observa, además, que los picos más bajos en la generación coinciden con los periodos de sequía en la región. Aunque la generación térmica representa sólo el 17.5% de la oferta total, esta fuente sigue siendo la principal en la región Caribe, alcanzando una presencia del 82.5%:
 
@@ -192,10 +192,10 @@ Como se planteó en los objetivos de este proyecto, nuestra finalidad es desarro
 Inicialmente, se plantea un modelo de regresión lineal, entrenándolo para evaluar su precisión en comparación con los valores reales. Sin embargo, los resultados obtenidos con este modelo no han sido los esperados:
 
 ![alt text](image-4.png)
-ver Gráfica en [Jupyter/regresionLineal.ipynb](https://github.com/jonalbu/demanda/blob/main/Jupyter/regresionLineal.ipynb)
+ver Gráfica en [Jupyter/regresionLineal.ipynb](Jupyter/regresionLineal.ipynb)
 
 ![alt text](image-5.png)
-ver Gráfica en [Jupyter/regresionLineal.ipynb](https://github.com/jonalbu/demanda/blob/main/Jupyter/regresionLineal.ipynb)
+ver Gráfica en [Jupyter/regresionLineal.ipynb](Jupyter/regresionLineal.ipynb)
 
 Como se observa en las gráficas, el modelo de regresión lineal no se ajusta adecuadamente a los datos reales. Por esta razón, se decidió utilizar Python para evaluar distintos modelos de regresión con el fin de identificar aquellos que mejor se aproximen a los datos esperados. Para ello, se empleó la librería de Python scikit-learn para evaluar distintos modelos mediante funciones, es decir, esta librería nos permite ejecutar distintos modelos de predicción y con los resultados obtenidos se compara para cada uno el coeficiente de determinación (R2) mientras más cercano a 1 mejor, también tenemos el error cuadrático medio (MSE) y el error absoluto medio (MAE) buscando en cada uno que sean lo más pequeños posible.
 
@@ -205,7 +205,7 @@ Por medio de lo anterior, se obtuvieron los siguientes valores para la demanda e
 
 
 ![alt text](image-6.png)
-ver resultados en [Jupyter/regresionLineal.ipynb](https://github.com/jonalbu/demanda/blob/main/Jupyter/regresionLineal.ipynb)
+ver resultados en [Jupyter/regresionLineal.ipynb](Jupyter/regresionLineal.ipynb)
 
 Se observa que el método de potenciación del gradiente (gradient boosting) es el que ofrece los mejores resultados. Sin embargo, estos pueden mejorarse aún más. Dado que es un modelo basado en árboles de decisión, es posible entrenarlo aumentando la profundidad de los árboles, añadiendo más estimadores y, así, mejorar su precisión.
 
@@ -218,7 +218,7 @@ Dado que se trata de un modelo de árboles de decisión, se modifican los hiperp
 Se ha mejorado significativamente en comparación con los valores iniciales, especialmente el R2, que ahora está muy cerca de 1. Esto indica que el modelo seleccionado ha sido efectivo. A continuación, se presenta la gráfica correspondiente a este modelo:
 
 ![alt text](image-7.png)
-ver Gráfica en [Jupyter/regresionLineal.ipynb](https://github.com/jonalbu/demanda/blob/main/Jupyter/regresionLineal.ipynb)
+ver Gráfica en [Jupyter/regresionLineal.ipynb](Jupyter/regresionLineal.ipynb)
 
 Como se observa en la gráfica, el modelo arroja unos valores de predicción con margen de error muy bajos, encontrándose además, la tendencia esperada de aumento de la demanda con el tiempo, a diferencia de la gráfica anterior donde la demanda predicha tiene un comportamiento más plano.
 
@@ -231,7 +231,7 @@ punto en una fecha futura como ejemplo; sin embargo, el modelo permite obtener, 
 
 
 ![alt text](image-8.png)
-ver Gráfica en [Jupyter/regresionLineal.ipynb](https://github.com/jonalbu/demanda/blob/main/Jupyter/regresionLineal.ipynb)
+ver Gráfica en [Jupyter/regresionLineal.ipynb](Jupyter/regresionLineal.ipynb)
 
 Se observa que el modelo permite establecer un intervalo de confianza, el cual se interpreta como una zona donde, con un 95% de probabilidad, se encontrará la demanda proyectada. Se puede notar que, a medida que nos alejamos más en el tiempo, este intervalo tiende a crecer, lo que indica que los resultados serán menos precisos.
 
@@ -244,19 +244,19 @@ Para el caso de la oferta, se evaluaron 3 funciones obteniendo los siguientes pa
 El modelo elegido para este caso, se trata de LightGBM o light gradient boosting machine, este es una implementación del modelo gradient boosting mejorando su capacidad de procesamiento por medio de una mejora en el crecimiento de sus árboles de decisión y su capacidad de operar multinúcleo:
 
 ![alt text](image-10.png)
-ver Gráfica en [Jupyter/regresionLineal.ipynb](https://github.com/jonalbu/demanda/blob/main/Jupyter/regresionLineal.ipynb)
+ver Gráfica en [Jupyter/regresionLineal.ipynb](Jupyter/regresionLineal.ipynb)
 
 Al realizar una serie temporal basada en este modelo se grafica y se observa una gran cantidad de ruido en la información obtenida:
 
 
 ![alt text](image-11.png)
-ver Gráfica en [Jupyter/regresionLineal.ipynb](https://github.com/jonalbu/demanda/blob/main/Jupyter/regresionLineal.ipynb)
+ver Gráfica en [Jupyter/regresionLineal.ipynb](Jupyter/regresionLineal.ipynb)
 
 Por esta razón, y para suavizar los datos obtenidos se implementa un método estadístico robusto que permita realizar un suavizado exponencial a los datos obtenidos e incluir las variables estacionales presentes, se elige el modelo holt winter, y se presenta el siguiente resultado:
 
 
 ![alt text](image-12.png)
-ver Gráfica en [Jupyter/regresionLineal.ipynb](https://github.com/jonalbu/demanda/blob/main/Jupyter/regresionLineal.ipynb)
+ver Gráfica en [Jupyter/regresionLineal.ipynb](Jupyter/regresionLineal.ipynb)
 
 <a id='section6'></a>
 ### CONCLUSIONES

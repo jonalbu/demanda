@@ -24,7 +24,7 @@ A continuación se presenta el contenido  del repositorio:
 
 ## Índice
 1. [DashBoard Streamlit](https://demanda-z4civg7fvvjxde57l9uzkt.streamlit.app/)
-2. [Documento del proyecto](Documento\Proyecto.MD)
+2. [Documento del proyecto](Documento/Proyecto.MD)
 3. [Codigo Python para la aplicación de Streamlit](demandaapp.py)
 4. [Archivos Notebook empleados para los Análisis](Jupyter)
 
