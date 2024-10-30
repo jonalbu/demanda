@@ -34,7 +34,7 @@ st.sidebar.header('Demanda Energética')
 # Cargar el archivo de datos
 df_demanda = pd.read_csv('Data/demanda_exportada.txt', sep='\t')
 
-# Asegurar que la columna 'Date' esté en formato datetime
+# Columna 'Date' esté en formato datetime
 df_demanda['Date'] = pd.to_datetime(df_demanda['Date'])
 
 # Suma de la demanda por horas (diaria)
@@ -124,7 +124,7 @@ fig_diario.update_layout(
 st.title("Visualización de la Demanda Energética Diaria por Región")
 st.plotly_chart(fig_diario, use_container_width=True)
 
-# --- Gráfico de demanda diaria superpuesta (Año Ficticio) ---
+# Gráfico de demanda diaria superpuesta (Año)
 df_filtrado['day_of_year'] = df_filtrado['Date'].dt.dayofyear
 df_filtrado['year'] = df_filtrado['Date'].dt.year
 
@@ -181,7 +181,7 @@ else:
 df_oferta2 = pd.read_csv('Data/oferta_recursos.txt', sep='\t')
 df_oferta = df_oferta2.dropna()
 
-# Asegúrate de que la columna 'Date' esté en formato datetime
+# Columna 'Date' esté en formato datetime
 df_oferta['Date'] = pd.to_datetime(df_oferta['Date'])
 
 # Suma de la oferta diaria y eliminación de valores nulos
@@ -362,8 +362,7 @@ fecha_futura = pd.to_datetime(fecha_futura)
 mostrar_intervalo = st.checkbox('Mostrar intervalos de confianza', value=True)
 
 # Verificar si la fecha futura es válida
-ultima_fecha = data['Date'].max()
-
+ultima_fecha = data['Date'].max() 
 if fecha_futura <= ultima_fecha:
     st.error(f"La fecha seleccionada debe ser posterior a {ultima_fecha.date()}.")
 else:
